@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CardSet name="Test">
+    <Card>
+        <Front>1</Front>
+        <Back>A</Back>
+    </Card>
+    <Card>
+        <Front>2</Front>
+        <Back>B</Back>
+    </Card>
+    <Card>
+        <Front>3</Front>
+        <Back>C</Back>
+    </Card>
+</CardSet>
