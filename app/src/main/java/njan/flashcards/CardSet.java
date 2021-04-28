@@ -1,30 +1,21 @@
 package njan.flashcards;
 
-import android.content.Context;
-import android.content.res.XmlResourceParser;
 import android.util.Log;
 import android.util.Pair;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public class CardSet implements Serializable {
     public static class Card implements Serializable {
-        private String front;
-        private String back;
+        private final String front;
+        private final String back;
 
         public Card(String front, String back) {
             this.front = front;
@@ -45,21 +36,15 @@ public class CardSet implements Serializable {
 
     private String name;
     private float textSize;
-    private List<Card> cards;
+    private final List<Card> cards;
 
     public CardSet(XmlPullParser parser) {
         name = DEFAULT_NAME;
         textSize = DEFAULT_TEXT_SIZE;
-        cards = new ArrayList<Card>();
+        cards = new ArrayList<>();
 
         try {
-            while (next(parser) != XmlPullParser.START_TAG) {
-                if (parser.getEventType() == XmlPullParser.END_DOCUMENT) {
-                    // unexpected end
-                    name = null;
-                    return;
-                }
-            }
+            next(parser);
             readSet(parser);
         } catch (XmlPullParserException | IOException e) {
             name = null;
@@ -71,7 +56,7 @@ public class CardSet implements Serializable {
         return name;
     }
 
-    public float getSize() {
+    public float getTextSize() {
         return textSize;
     }
 
@@ -98,7 +83,7 @@ public class CardSet implements Serializable {
 
     /**
      * Custom next which skips whitespace text
-     * @param parser
+     * @param parser parser to advance
      * @return current eventType
      */
     private static int next(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -112,22 +97,26 @@ public class CardSet implements Serializable {
 
     /**
      * Read card set
-     * @param parser
+     * @param parser parser to read set from
      */
     private void readSet(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, CARD_SET_NAME);
 
+        // read name
         String nameAttr = parser.getAttributeValue(null, NAME_ATTRIBUTE);
         if (nameAttr != null) {
             name = nameAttr;
         }
 
+        // read text size
         try {
             String textSizeAttr = parser.getAttributeValue(null, TEXT_SIZE_ATTRIBUTE);
             if (textSizeAttr != null) {
                 textSize = Float.parseFloat(textSizeAttr);
             }
-        } catch (NumberFormatException e) { }
+        } catch (NumberFormatException e) {
+            Log.d("ReadSet", "Text-Size attribute invalid");
+        }
 
         while (next(parser) != XmlPullParser.END_TAG) {
             String name = parser.getName();
@@ -135,6 +124,7 @@ public class CardSet implements Serializable {
                 // read card and add to set
                 cards.add(readCard(parser));
             } else if (parser.getEventType() == XmlPullParser.END_DOCUMENT) {
+                // unexpected end of document
                 throw new IllegalStateException();
             } else {
                 // skip elements which are not cards
@@ -146,8 +136,8 @@ public class CardSet implements Serializable {
 
     /**
      * Read a card
-     * @param parser
-     * @return
+     * @param parser parser to read card form
+     * @return Card read
      */
     private static Card readCard(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, CARD_NAME);
@@ -169,8 +159,8 @@ public class CardSet implements Serializable {
     /**
      * Read element which only contains text:
      * <name>text</name>
-     * @param parser
-     * @param name
+     * @param parser parser to read element from
+     * @param name tag of element
      * @return text
      */
     private static String readTextTag(XmlPullParser parser, String name) throws IOException, XmlPullParserException {
@@ -183,7 +173,7 @@ public class CardSet implements Serializable {
 
     /**
      * Skip current element
-     * @param parser
+     * @param parser parser to advance
      */
     private static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {

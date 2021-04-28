@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<CardSet name="Test2">
-    <Card><Front>D</Front><Back>A</Back></Card>
-    <Card> <Front>E</Front> <Back>B</Back> </Card>
-    <Card>
-        <Front>F</Front>
-        <Back>C</Back>
-    </Card>
-</CardSet>

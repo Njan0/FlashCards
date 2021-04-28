@@ -1,5 +1,6 @@
 package njan.flashcards.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -9,7 +10,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
-import android.view.ViewGroup;
 
 import java.util.List;
 
@@ -19,8 +19,6 @@ import njan.flashcards.R;
 
 public class CardsActivity extends AppCompatActivity {
     public static final String SET_MESSAGE = "njan.flashcards.SET.MESSAGE";
-    private CardSet set;
-    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,17 +26,17 @@ public class CardsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cards);
 
         Intent intent = getIntent();
-        set = (CardSet) intent.getSerializableExtra(SET_MESSAGE);
+        CardSet set = (CardSet) intent.getSerializableExtra(SET_MESSAGE);
 
         // setup viewPager
-        viewPager = findViewById(R.id.viewPagerCards);
-        CardPagerAdapter pagerAdapter = new CardPagerAdapter(this, set.generateCards(), set.getSize());
+        ViewPager2 viewPager = findViewById(R.id.viewPagerCards);
+        CardPagerAdapter pagerAdapter = new CardPagerAdapter(this, set.generateCards(), set.getTextSize());
         viewPager.setAdapter(pagerAdapter);
     }
 
-    private class CardPagerAdapter extends FragmentStateAdapter {
-        private List<Pair<String, String>> data;
-        private float textSize;
+    private static class CardPagerAdapter extends FragmentStateAdapter {
+        private final List<Pair<String, String>> data;
+        private final float textSize;
 
         public CardPagerAdapter(FragmentActivity fa, List<Pair<String, String>> data, float textSize) {
             super(fa);
@@ -46,6 +44,7 @@ public class CardsActivity extends AppCompatActivity {
             this.textSize = textSize;
         }
 
+        @NonNull
         @Override
         public Fragment createFragment(int position) {
             CardFragment cf = new CardFragment();

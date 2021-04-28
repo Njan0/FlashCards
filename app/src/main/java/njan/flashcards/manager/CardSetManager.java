@@ -1,10 +1,10 @@
 package njan.flashcards.manager;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,23 +17,19 @@ import njan.flashcards.CardSet;
 
 public class CardSetManager {
     private static final String SETS_FILE_NAME = "sets.data";
-    private static CardSetManager INSTANCE;
+    private static List<CardSet> sets;
 
-    private Context context;
-    private List<CardSet> sets;
+    private final Context context;
 
     private CardSetManager(Context context) {
         this.context = context;
-        initSets();
+        if (sets == null) {
+            initSets(context);
+        }
     }
 
     public static CardSetManager getInstance(Context context) {
-        if (INSTANCE == null) {
-            INSTANCE = new CardSetManager(context);
-        } else {
-            INSTANCE.context = context;
-        }
-        return INSTANCE;
+        return new CardSetManager(context);
     }
 
     public List<CardSet> getSets() {
@@ -42,33 +38,33 @@ public class CardSetManager {
 
     public void addSet(CardSet set) {
         sets.add(set);
-        saveCardSet();
+        saveCardSet(context);
     }
 
     public void removeSet(int index) {
         sets.remove(index);
-        saveCardSet();
+        saveCardSet(context);
     }
 
     public void renameSet(int index, String newName) {
         sets.get(index).setName(newName);
-        saveCardSet();
+        saveCardSet(context);
     }
 
-    private void initSets() {
+    private static void initSets(Context context) {
         sets = new ArrayList<>();
 
         File setsFile = new File(context.getFilesDir(), SETS_FILE_NAME);
         if (!setsFile.exists()) {
             // store empty set
-            saveCardSet();
+            saveCardSet(context);
         } else {
             // load sets
-            loadCardSet();
+            loadCardSet(context);
         }
     }
 
-    private void saveCardSet() {
+    private static void saveCardSet(Context context) {
         File setsFile = new File(context.getFilesDir(), SETS_FILE_NAME);
         try {
             FileOutputStream fileStream = new FileOutputStream(setsFile);
@@ -77,24 +73,21 @@ public class CardSetManager {
             objectStream.close();
             fileStream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("Import", "Save Set failed", e);
         }
     }
 
-    private void loadCardSet() {
+    private static void loadCardSet(Context context) {
         File setsFile = new File(context.getFilesDir(), SETS_FILE_NAME);
         try {
             FileInputStream fileStream = new FileInputStream(setsFile);
             ObjectInputStream objectStream = new ObjectInputStream(fileStream);
+            //noinspection unchecked
             sets = (List<CardSet>) objectStream.readObject();
             objectStream.close();
             fileStream.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException | ClassNotFoundException e) {
+            Log.e("Import", "Load Set failed", e);
         }
     }
 }

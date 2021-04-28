@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -19,8 +20,8 @@ import njan.flashcards.manager.CardSetManager;
 
 public class CardSetAdapter extends RecyclerView.Adapter<CardSetAdapter.ViewHolder> {
 
-    private Context context;
-    private List<CardSet> sets;
+    private final Context context;
+    private final List<CardSet> sets;
     private int selectedPos;
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -60,6 +61,7 @@ public class CardSetAdapter extends RecyclerView.Adapter<CardSetAdapter.ViewHold
         return selectedPos;
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.set_item, viewGroup, false);
@@ -72,9 +74,7 @@ public class CardSetAdapter extends RecyclerView.Adapter<CardSetAdapter.ViewHold
         viewHolder.getTextView().setText(sets.get(position).getName());
         viewHolder.itemView.setBackgroundColor(selectedPos == position ? Color.GRAY : Color.TRANSPARENT);
 
-        viewHolder.textViewOptions.setOnClickListener(view -> {
-            showPopup(viewHolder.textViewOptions, position);
-        });
+        viewHolder.textViewOptions.setOnClickListener(view -> showPopup(viewHolder.textViewOptions, position));
     }
 
     /**
@@ -87,16 +87,15 @@ public class CardSetAdapter extends RecyclerView.Adapter<CardSetAdapter.ViewHold
         popup.inflate(R.menu.options_menu_card);
 
         popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.menu_rename:
-                    renameSet(position);
-                    break;
-                case R.id.menu_delete:
-                    CardSetManager.getInstance(context).removeSet(position);
-                    notifyDataSetChanged();
-                    break;
+            int id = item.getItemId();
+            if (id == R.id.menu_rename) {
+                renameSet(position);
+            } else if (id == R.id.menu_delete) {
+                CardSetManager.getInstance(context).removeSet(position);
+                notifyDataSetChanged();
             }
-            return false;
+
+            return true;
         });
         popup.show();
     }
@@ -111,6 +110,7 @@ public class CardSetAdapter extends RecyclerView.Adapter<CardSetAdapter.ViewHold
 
         EditText input = new EditText(context);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(sets.get(position).getName());
         builder.setView(input);
 
         builder.setPositiveButton("Rename", (dialog, which) -> {

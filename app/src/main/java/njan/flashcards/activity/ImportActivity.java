@@ -24,12 +24,14 @@ import njan.flashcards.R;
 
 public class ImportActivity extends AppCompatActivity {
     ActivityResultLauncher<String> launcherImportFile;
+    Snackbar barFail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_import);
 
+        barFail = Snackbar.make(findViewById(R.id.constraintLayout), "Import failed", Snackbar.LENGTH_SHORT);
         launcherImportFile = registerForActivityResult(new ActivityResultContracts.GetContent(), this::importFile);
     }
 
@@ -50,12 +52,14 @@ public class ImportActivity extends AppCompatActivity {
             if (!cs.isEmpty()) {
                 CardSetManager.getInstance(this).addSet(cs);
                 Snackbar.make(findViewById(R.id.constraintLayout), "Imported " + cs.getName(), Snackbar.LENGTH_SHORT).show();
-            } else {
-                Snackbar.make(findViewById(R.id.constraintLayout), "Import failed", Snackbar.LENGTH_SHORT).show();
+                return;
             }
         } catch (FileNotFoundException | XmlPullParserException e) {
-            e.printStackTrace();
+            Log.e("Import", "Import failed", e);
         }
+
+        // failed somewhere
+        barFail.show();
     }
 
     public void onClickImportFile(View view) {
